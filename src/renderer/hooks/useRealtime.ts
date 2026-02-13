@@ -22,20 +22,20 @@ export function useRealtime() {
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (projects) setProjects(projects)
+      if (projects && projects.length > 0) setProjects(projects)
 
       const { data: tasks } = await supabase
         .from('tasks')
         .select('*')
         .order('created_at', { ascending: true })
 
-      if (tasks) setTasks(tasks)
+      if (tasks && tasks.length > 0) setTasks(tasks)
 
       const { data: agents } = await supabase
         .from('agents')
         .select('*')
 
-      if (agents) setAgents(agents)
+      if (agents && agents.length > 0) setAgents(agents)
     }
 
     loadData()

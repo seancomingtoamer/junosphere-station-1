@@ -120,15 +120,13 @@ export function StationInterior() {
               <boxGeometry args={[1.5, 0.1, 0.8]} />
               <meshStandardMaterial color="#151525" metalness={0.8} roughness={0.3} />
             </mesh>
-            {/* Holographic screen */}
-            <mesh position={[0, 1.5, -0.3]}>
-              <planeGeometry args={[1.2, 0.8]} />
+            {/* Desk accent strip */}
+            <mesh position={[0, 0.86, 0]}>
+              <boxGeometry args={[1.3, 0.01, 0.02]} />
               <meshStandardMaterial
                 color="#00f0ff"
                 emissive="#00f0ff"
-                emissiveIntensity={0.4}
-                transparent
-                opacity={0.2}
+                emissiveIntensity={1}
               />
             </mesh>
           </group>

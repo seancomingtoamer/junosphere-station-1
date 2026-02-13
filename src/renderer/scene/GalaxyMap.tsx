@@ -22,8 +22,7 @@ export function GalaxyMap({ projects }: GalaxyMapProps) {
 
   // Demo projects if none loaded yet
   const displayProjects = projects.length > 0 ? projects : [
-    { id: 'demo-1', name: 'PROJECT ALPHA', description: 'First collab', status: 'active' as const, owner_id: '', created_at: '' },
-    { id: 'demo-2', name: 'PROJECT OMEGA', description: 'The big one', status: 'active' as const, owner_id: '', created_at: '' },
+    { id: 'aiquickpath', name: 'AIQUICKPATH', description: 'Boutique AI consultancy', status: 'active' as const, owner_id: '', created_at: '' },
   ]
 
   const handleProjectClick = (projectId: string) => {

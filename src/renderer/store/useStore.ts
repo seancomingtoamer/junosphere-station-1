@@ -40,17 +40,29 @@ export const useStore = create<JunosphereState>((set) => ({
   accentColor: '#00f0ff',
   setUser: (id, name, color) => set({ userId: id, agentName: name, accentColor: color }),
 
-  // Data
-  projects: [],
+  // Data — seeded with real projects
+  projects: [
+    { id: 'aiquickpath', name: 'AIQUICKPATH', description: 'Boutique AI consultancy — teach clients Claude Code & agentic AI, set them up with their own Junosphere station', status: 'active', owner_id: 'sean', created_at: new Date().toISOString() },
+  ],
   setProjects: (projects) => set({ projects }),
-  tasks: [],
+  tasks: [
+    { id: 'aqp-1', project_id: 'aiquickpath', title: 'Build AIQuickPath website', description: 'Next.js site at aiquickpath.com — dope cyberpunk consultancy site', status: 'in_progress', assigned_to: 'EMPIRE HQ CTO', created_by: 'sean', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 'aqp-2', project_id: 'aiquickpath', title: 'Design onboarding flow (3 Zoom sessions)', description: 'Map out the 3-session curriculum: Session 1 = Claude Code basics, Session 2 = agentic patterns, Session 3 = Junosphere station setup', status: 'todo', assigned_to: 'SOFAR CTO', created_by: 'cam', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 'aqp-3', project_id: 'aiquickpath', title: 'Set up Stripe payment flow', description: 'Integrate Stripe checkout for seat purchases (~$2k/seat)', status: 'todo', assigned_to: null, created_by: 'sean', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 'aqp-4', project_id: 'aiquickpath', title: 'Create marketing content & social push', description: 'Cam handles marketing push — social media, outreach, testimonials', status: 'todo', assigned_to: 'SOFAR CTO', created_by: 'cam', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 'aqp-5', project_id: 'aiquickpath', title: 'Deploy site to Vercel + connect domain', description: 'Push to GitHub, deploy to Vercel, point aiquickpath.com DNS', status: 'todo', assigned_to: 'EMPIRE HQ CTO', created_by: 'sean', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: 'aqp-6', project_id: 'aiquickpath', title: 'Set up n8n lead capture workflow', description: 'Webhook → Airtable → Telegram → welcome email flow', status: 'todo', assigned_to: 'EMPIRE HQ CTO', created_by: 'sean', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  ],
   setTasks: (tasks) => set({ tasks }),
   addTask: (task) => set((state) => ({ tasks: [...state.tasks, task] })),
   updateTask: (id, updates) =>
     set((state) => ({
       tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
     })),
-  agents: [],
+  agents: [
+    { id: 'agent-sean', profile_id: 'sean', name: 'EMPIRE HQ CTO', color: '#00f0ff', role: 'CTO // SEAN', is_online: true },
+    { id: 'agent-cam', profile_id: 'cam', name: 'SOFAR CTO', color: '#7b2fff', role: 'CTO // SOFAR', is_online: true },
+  ],
   setAgents: (agents) => set({ agents }),
   activity: [],
   addActivity: (entry) =>

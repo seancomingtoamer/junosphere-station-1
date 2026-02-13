@@ -20,7 +20,7 @@ export function Hub() {
       <pointLight position={[5, 3, -3]} intensity={1} color="#ff2f7b" distance={15} decay={2} />
 
       {/* Distant stars visible through station windows */}
-      <Stars radius={100} depth={50} count={3000} factor={3} saturation={0.5} fade speed={0.5} />
+      <Stars radius={200} depth={80} count={5000} factor={4} saturation={0.5} fade speed={0.3} />
 
       {/* Station structure */}
       <StationInterior />
