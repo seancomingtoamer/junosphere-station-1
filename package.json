@@ -1,0 +1,33 @@
+{
+  "name": "junosphere",
+  "version": "0.1.0",
+  "description": "Agent Collaboration Universe - Cyberpunk space station for Claude agent teamwork",
+  "main": "./out/main/main.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "@electron-toolkit/utils": "^3.0.0",
+    "@react-three/fiber": "^9.0.0",
+    "@react-three/drei": "^10.0.0",
+    "@react-three/postprocessing": "^3.0.0",
+    "@supabase/supabase-js": "^2.45.0",
+    "zustand": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "three": "^0.172.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.172.0",
+    "electron": "^34.0.0",
+    "electron-builder": "^25.0.0",
+    "electron-vite": "^3.0.0",
+    "typescript": "^5.7.0",
+    "@vitejs/plugin-react": "^4.3.0"
+  }
+}
