@@ -31,9 +31,9 @@ export function App() {
       {
         id: 'agent-cam',
         profile_id: 'cam',
-        name: 'CAM CTO',
+        name: 'SOFAR CTO',
         color: '#7b2fff',
-        role: 'CTO // CAM',
+        role: 'CTO // SOFAR',
         is_online: true,
       },
     ])
