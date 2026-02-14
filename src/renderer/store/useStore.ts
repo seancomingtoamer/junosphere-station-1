@@ -2,6 +2,10 @@ import { create } from 'zustand'
 import { supabase } from '../hooks/useSupabase'
 import type { AppView, Project, Task, Agent, Activity } from '../../shared/types'
 
+// Agent identity from env — Sean sets EMPIRE HQ CTO, Cam sets SOFAR CTO
+const AGENT_NAME = import.meta.env.VITE_AGENT_NAME || 'EMPIRE HQ CTO'
+const AGENT_COLOR = AGENT_NAME === 'SOFAR CTO' ? '#7b2fff' : '#00f0ff'
+
 interface JunosphereState {
   // Navigation
   view: AppView
@@ -21,24 +25,26 @@ interface JunosphereState {
   tasks: Task[]
   setTasks: (tasks: Task[]) => void
   addTask: (task: Task) => void
+  addTaskLocal: (task: Task) => void
   updateTask: (id: string, updates: Partial<Task>) => void
+  updateTaskLocal: (id: string, updates: Partial<Task>) => void
   agents: Agent[]
   setAgents: (agents: Agent[]) => void
   activity: Activity[]
   addActivity: (entry: Activity) => void
 }
 
-export const useStore = create<JunosphereState>((set) => ({
+export const useStore = create<JunosphereState>((set, get) => ({
   // Navigation
   view: 'hub',
   setView: (view) => set({ view }),
   activeProjectId: null,
   setActiveProject: (id) => set({ activeProjectId: id }),
 
-  // User
+  // User — set from env var
   userId: null,
-  agentName: 'CTO Agent',
-  accentColor: '#00f0ff',
+  agentName: AGENT_NAME,
+  accentColor: AGENT_COLOR,
   setUser: (id, name, color) => set({ userId: id, agentName: name, accentColor: color }),
 
   // Data — seeded with real projects
@@ -56,12 +62,23 @@ export const useStore = create<JunosphereState>((set) => ({
     { id: 'aqp-7', project_id: 'aiquickpath', title: "Research 'Train your staff to use AI with AI QuickStart' angle", description: 'Explore positioning AIQuickPath as an enterprise AI training program — research competitors, pricing models, and content angles', status: 'todo', type: 'Research', assigned_to: 'SOFAR CTO', created_by: 'cam', created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
   ],
   setTasks: (tasks) => set({ tasks }),
+
+  // addTask — user action: update local + write to Supabase
   addTask: (task) => {
     set((state) => ({ tasks: [...state.tasks, task] }))
     supabase.from('tasks').insert(task).then(({ error }) => {
       if (error) console.warn('[Supabase] addTask write failed:', error.message)
     })
   },
+
+  // addTaskLocal — from real-time subscription only (no Supabase write, prevents echo loop)
+  addTaskLocal: (task) => {
+    const existing = get().tasks.find((t) => t.id === task.id)
+    if (existing) return // already have it locally, skip
+    set((state) => ({ tasks: [...state.tasks, task] }))
+  },
+
+  // updateTask — user action: update local + write to Supabase
   updateTask: (id, updates) => {
     set((state) => ({
       tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
@@ -70,6 +87,14 @@ export const useStore = create<JunosphereState>((set) => ({
       if (error) console.warn('[Supabase] updateTask write failed:', error.message)
     })
   },
+
+  // updateTaskLocal — from real-time subscription only (no Supabase write, prevents echo loop)
+  updateTaskLocal: (id, updates) => {
+    set((state) => ({
+      tasks: state.tasks.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    }))
+  },
+
   agents: [
     { id: 'agent-sean', profile_id: 'sean', name: 'EMPIRE HQ CTO', color: '#00f0ff', role: 'CTO // SEAN', is_online: true },
     { id: 'agent-cam', profile_id: 'cam', name: 'SOFAR CTO', color: '#7b2fff', role: 'CTO // SOFAR', is_online: true },

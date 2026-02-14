@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 import { supabase } from './useSupabase'
 import { useStore } from '../store/useStore'
-import type { Task, Activity, Agent, Project } from '../../shared/types'
+import type { Task, Activity } from '../../shared/types'
 
 export function useRealtime() {
   const setProjects = useStore((s) => s.setProjects)
   const setTasks = useStore((s) => s.setTasks)
   const setAgents = useStore((s) => s.setAgents)
   const addActivity = useStore((s) => s.addActivity)
-  const updateTask = useStore((s) => s.updateTask)
-  const addTask = useStore((s) => s.addTask)
+  const addTaskLocal = useStore((s) => s.addTaskLocal)
+  const updateTaskLocal = useStore((s) => s.updateTaskLocal)
 
   useEffect(() => {
     // Skip if no Supabase URL configured
@@ -40,14 +40,16 @@ export function useRealtime() {
 
     loadData()
 
-    // Real-time subscriptions
+    // Real-time subscriptions — use LOCAL methods to avoid echo loops
+    // When another user writes to Supabase, we get the event and update locally only
+    // (no re-write to Supabase, which would cause infinite loops)
     const tasksChannel = supabase
       .channel('tasks-changes')
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'tasks' },
         (payload) => {
-          addTask(payload.new as Task)
+          addTaskLocal(payload.new as Task)
         }
       )
       .on(
@@ -55,7 +57,7 @@ export function useRealtime() {
         { event: 'UPDATE', schema: 'public', table: 'tasks' },
         (payload) => {
           const updated = payload.new as Task
-          updateTask(updated.id, updated)
+          updateTaskLocal(updated.id, updated)
         }
       )
       .subscribe()
@@ -77,7 +79,6 @@ export function useRealtime() {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'agents' },
         async () => {
-          // Reload all agents on any change
           const { data } = await supabase.from('agents').select('*')
           if (data) setAgents(data)
         }
