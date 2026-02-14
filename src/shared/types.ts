@@ -22,6 +22,7 @@ export interface Task {
   title: string
   description: string
   status: 'todo' | 'in_progress' | 'done'
+  type?: string
   assigned_to: string | null
   created_by: string
   created_at: string

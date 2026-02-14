@@ -5,7 +5,12 @@ const SYNC_WEBHOOK = 'https://seanpro.app.n8n.cloud/webhook/junosphere-sync'
 
 type SyncState = 'idle' | 'syncing' | 'synced' | 'error'
 
-export function SyncButton() {
+interface SyncButtonProps {
+  dirty?: boolean
+  onSynced?: () => void
+}
+
+export function SyncButton({ dirty, onSynced }: SyncButtonProps) {
   const tasks = useStore((s) => s.tasks)
   const activeProjectId = useStore((s) => s.activeProjectId)
   const [state, setState] = useState<SyncState>('idle')
@@ -29,6 +34,7 @@ export function SyncButton() {
       const data = await res.json()
       setSyncCount(data.synced || projectTasks.length)
       setState('synced')
+      onSynced?.()
       setTimeout(() => setState('idle'), 3000)
     } catch {
       setState('error')
@@ -66,8 +72,21 @@ export function SyncButton() {
         cursor: state === 'syncing' ? 'wait' : 'pointer',
         opacity: state === 'syncing' ? 0.6 : 1,
         transition: 'all 0.3s',
+        position: 'relative',
       }}
     >
+      {dirty && state === 'idle' && (
+        <span style={{
+          position: 'absolute',
+          top: 4,
+          right: 6,
+          width: 6,
+          height: 6,
+          borderRadius: '50%',
+          background: '#ffaa00',
+          boxShadow: '0 0 6px #ffaa00',
+        }} />
+      )}
       {state === 'syncing' ? '[ ••• ] ' : state === 'synced' ? '[ OK ] ' : '[ >> ] '}
       {labels[state]}
     </button>
