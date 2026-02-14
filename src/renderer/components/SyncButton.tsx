@@ -1,23 +1,33 @@
 import { useState } from 'react'
+import { useStore } from '../store/useStore'
 
 const SYNC_WEBHOOK = 'https://seanpro.app.n8n.cloud/webhook/junosphere-sync'
 
 type SyncState = 'idle' | 'syncing' | 'synced' | 'error'
 
 export function SyncButton() {
+  const tasks = useStore((s) => s.tasks)
+  const activeProjectId = useStore((s) => s.activeProjectId)
   const [state, setState] = useState<SyncState>('idle')
   const [syncCount, setSyncCount] = useState(0)
 
   const handleSync = async () => {
     setState('syncing')
+    const projectTasks = activeProjectId
+      ? tasks.filter((t) => t.project_id === activeProjectId)
+      : tasks
     try {
       const res = await fetch(SYNC_WEBHOOK, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'station-1', timestamp: new Date().toISOString() }),
+        body: JSON.stringify({
+          source: 'station-1',
+          timestamp: new Date().toISOString(),
+          tasks: projectTasks,
+        }),
       })
       const data = await res.json()
-      setSyncCount(data.synced || 0)
+      setSyncCount(data.synced || projectTasks.length)
       setState('synced')
       setTimeout(() => setState('idle'), 3000)
     } catch {
