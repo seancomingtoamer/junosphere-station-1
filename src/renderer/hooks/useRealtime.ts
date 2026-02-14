@@ -15,27 +15,54 @@ export function useRealtime() {
     // Skip if no Supabase URL configured
     if (!import.meta.env.VITE_SUPABASE_URL) return
 
-    // Initial data load
+    // Initial data load — if Supabase is empty, seed it from local store defaults
     async function loadData() {
       const { data: projects } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (projects && projects.length > 0) setProjects(projects)
+      if (projects && projects.length > 0) {
+        setProjects(projects)
+      } else {
+        // Seed Supabase with default projects from store
+        const defaultProjects = useStore.getState().projects
+        if (defaultProjects.length > 0) {
+          await supabase.from('projects').upsert(defaultProjects, { onConflict: 'id' })
+          console.log('[Supabase] Seeded projects:', defaultProjects.length)
+        }
+      }
 
       const { data: tasks } = await supabase
         .from('tasks')
         .select('*')
         .order('created_at', { ascending: true })
 
-      if (tasks && tasks.length > 0) setTasks(tasks)
+      if (tasks && tasks.length > 0) {
+        setTasks(tasks)
+      } else {
+        // Seed Supabase with default tasks from store
+        const defaultTasks = useStore.getState().tasks
+        if (defaultTasks.length > 0) {
+          await supabase.from('tasks').upsert(defaultTasks, { onConflict: 'id' })
+          console.log('[Supabase] Seeded tasks:', defaultTasks.length)
+        }
+      }
 
       const { data: agents } = await supabase
         .from('agents')
         .select('*')
 
-      if (agents && agents.length > 0) setAgents(agents)
+      if (agents && agents.length > 0) {
+        setAgents(agents)
+      } else {
+        // Seed Supabase with default agents from store
+        const defaultAgents = useStore.getState().agents
+        if (defaultAgents.length > 0) {
+          await supabase.from('agents').upsert(defaultAgents, { onConflict: 'id' })
+          console.log('[Supabase] Seeded agents:', defaultAgents.length)
+        }
+      }
     }
 
     loadData()

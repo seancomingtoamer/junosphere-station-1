@@ -1,3 +1,4 @@
+import { useRef, useMemo } from 'react'
 import { useStore } from '../store/useStore'
 import { Stars } from '@react-three/drei'
 import { EffectComposer, Bloom, ChromaticAberration, Scanline } from '@react-three/postprocessing'
@@ -7,9 +8,27 @@ import { GalaxyMap } from './GalaxyMap'
 import { StationInterior } from './StationInterior'
 import { ParticleDust } from './ParticleDust'
 
+// Starting positions for agents — spread across station floor
+const AGENT_STARTS: [number, number, number][] = [
+  [-2.5, 0, 2.5],   // Agent 0 (EMPIRE HQ CTO) — left side
+  [2.5, 0, 2.0],     // Agent 1 (SOFAR CTO) — right side
+  [-1.5, 0, 3.5],   // Extra agents if added
+  [1.5, 0, 1.5],
+]
+
 export function Hub() {
   const projects = useStore((s) => s.projects)
   const agents = useStore((s) => s.agents)
+
+  // Live position refs — each agent writes to its own, reads from partner's
+  // These are mutable Vector3 objects updated every frame by each Agent
+  const livePositions = useMemo(() =>
+    agents.map((_, i) => {
+      const pos = AGENT_STARTS[i] || AGENT_STARTS[0]
+      return new THREE.Vector3(pos[0], 0, pos[2])
+    }),
+    [agents.length]
+  )
 
   return (
     <>
@@ -31,14 +50,20 @@ export function Hub() {
       {/* Floating dust particles */}
       <ParticleDust />
 
-      {/* Agent avatars */}
-      {agents.map((agent, i) => (
-        <Agent
-          key={agent.id}
-          agent={agent}
-          position={[i % 2 === 0 ? -2.5 : 2.5, 0, 2 + i * 0.5]}
-        />
-      ))}
+      {/* Agent avatars — alive with wandering, looking, pointing, collision avoidance */}
+      {agents.map((agent, i) => {
+        const pos = AGENT_STARTS[i] || AGENT_STARTS[0]
+        const partnerIdx = i === 0 ? 1 : 0
+        return (
+          <Agent
+            key={agent.id}
+            agent={agent}
+            position={pos}
+            livePosition={livePositions[i]}
+            partnerLivePosition={livePositions[partnerIdx]}
+          />
+        )
+      })}
 
       {/* Post-processing for that cyberpunk feel */}
       <EffectComposer>
