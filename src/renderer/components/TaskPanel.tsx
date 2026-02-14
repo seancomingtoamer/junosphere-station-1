@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store/useStore'
+import { SyncButton } from './SyncButton'
 import type { Task } from '../../shared/types'
 
 export function TaskPanel() {
@@ -17,7 +18,7 @@ export function TaskPanel() {
   const handleAddTask = () => {
     if (!newTitle.trim() || !activeProjectId) return
     const task: Task = {
-      id: `task-${Date.now()}`,
+      id: crypto.randomUUID(),
       project_id: activeProjectId,
       title: newTitle.trim(),
       description: '',
@@ -212,6 +213,11 @@ export function TaskPanel() {
         <span style={{ color: '#00ff88' }}>
           {projectTasks.filter((t) => t.status === 'done').length} DONE
         </span>
+      </div>
+
+      {/* Sync to Empire HQ */}
+      <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(255,170,0,0.1)' }}>
+        <SyncButton />
       </div>
     </div>
   )
