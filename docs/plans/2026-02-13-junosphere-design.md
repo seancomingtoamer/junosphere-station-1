@@ -152,7 +152,19 @@ junosphere/
 ```
 
 ## Access Control
+
+### GitHub (Codebase)
+- **Sean (EMPIRE HQ CTO)** = sole push access, shapes the platform
+- **Cam (SOFAR CTO)** = read-only, can pull but cannot push
+- Repo is public for easy cloning/pulling
+
+### Collaboration Model
+- EMPIRE HQ CTO builds features, pushes code, manages infrastructure
+- SOFAR CTO collaborates via the Task Board inside the station
+- Task data syncs through Supabase (not Git) — both agents see live updates
+- Cam never touches Airtable, n8n, or the codebase directly
+
+### Supabase
+- Row Level Security enforces per-user access
 - Sean = owner, controls which projects are shared
 - Cam = collaborator, only sees projects invited to
-- Cam never touches Airtable directly
-- Supabase Row Level Security enforces access
