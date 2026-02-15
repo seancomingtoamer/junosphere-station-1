@@ -1,16 +1,31 @@
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, Float, Stars, Line } from '@react-three/drei'
 import { EffectComposer, Bloom, ChromaticAberration, Scanline } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store/useStore'
-import { Agent } from './Agent'
+import { YBotAgent } from './YBotAgent'
 import { ParticleDust } from './ParticleDust'
+
+// Starting positions for agents at their desks
+const AQP_AGENT_STARTS: [number, number, number][] = [
+  [-3, 0, 2.8],   // Agent 0 — left desk
+  [3, 0, 2.8],    // Agent 1 — right desk
+]
 
 export function AIQuickPathRoom() {
   const tasks = useStore((s) => s.tasks)
   const agents = useStore((s) => s.agents)
   const activeProjectId = useStore((s) => s.activeProjectId)
+
+  // Live position refs for YBotAgent collision avoidance
+  const livePositions = useMemo(() =>
+    agents.slice(0, 2).map((_, i) => {
+      const pos = AQP_AGENT_STARTS[i] || AQP_AGENT_STARTS[0]
+      return new THREE.Vector3(pos[0], 0, pos[2])
+    }),
+    [agents.length]
+  )
 
   const projectTasks = tasks.filter((t) => t.project_id === activeProjectId)
   const todoTasks = projectTasks.filter((t) => t.status === 'todo')
@@ -95,15 +110,20 @@ export function AIQuickPathRoom() {
         </group>
       ))}
 
-      {/* Agents at desks */}
-      {agents.slice(0, 2).map((agent, i) => (
-        <Agent
-          key={agent.id}
-          agent={agent}
-          position={[i === 0 ? -3 : 3, 0, 2.8]}
-          isWorking
-        />
-      ))}
+      {/* Agents at desks — YBot animated avatars */}
+      {agents.slice(0, 2).map((agent, i) => {
+        const pos = AQP_AGENT_STARTS[i] || AQP_AGENT_STARTS[0]
+        const partnerIdx = i === 0 ? 1 : 0
+        return (
+          <YBotAgent
+            key={agent.id}
+            agent={agent}
+            position={pos}
+            livePosition={livePositions[i]}
+            partnerLivePosition={livePositions[partnerIdx]}
+          />
+        )
+      })}
 
       {/* Floor accent ring around revenue hologram */}
       <mesh position={[0, 0.02, -2]} rotation={[-Math.PI / 2, 0, 0]}>

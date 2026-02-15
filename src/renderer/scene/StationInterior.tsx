@@ -24,9 +24,9 @@ export function StationInterior() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <circleGeometry args={[12, 64]} />
         <meshStandardMaterial
-          color="#0a0a12"
-          metalness={0.9}
-          roughness={0.3}
+          color="#8a8a95"
+          metalness={0.6}
+          roughness={0.45}
         />
       </mesh>
 
@@ -77,20 +77,22 @@ export function StationInterior() {
         })}
       </group>
 
-      {/* Window panels — transparent sections in the wall */}
+      {/* Window panels — nebula glow bleeding in from deep space */}
       {Array.from({ length: 4 }).map((_, i) => {
         const angle = (i / 4) * Math.PI * 2 + Math.PI / 4
         const x = Math.cos(angle) * 11.7
         const z = Math.sin(angle) * 11.7
+        const windowColors = ['#001040', '#100030', '#001040', '#100030']
+        const windowEmissive = ['#0050c0', '#4010a0', '#0050c0', '#4010a0']
         return (
           <mesh key={`window-${i}`} position={[x, 4, z]} rotation={[0, -angle + Math.PI / 2, 0]}>
             <planeGeometry args={[4, 5]} />
             <meshStandardMaterial
-              color="#001828"
+              color={windowColors[i]}
               transparent
-              opacity={0.15}
-              emissive="#002040"
-              emissiveIntensity={0.3}
+              opacity={0.2}
+              emissive={windowEmissive[i]}
+              emissiveIntensity={0.6}
             />
           </mesh>
         )

@@ -1,17 +1,32 @@
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom, ChromaticAberration, Scanline } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store/useStore'
-import { Agent } from './Agent'
+import { YBotAgent } from './YBotAgent'
 import { ParticleDust } from './ParticleDust'
+
+// Starting positions for agents at their desks
+const PR_AGENT_STARTS: [number, number, number][] = [
+  [-2, 0, 2],   // Agent 0 — left desk
+  [2, 0, 2],    // Agent 1 — right desk
+]
 
 export function ProjectRoom() {
   const tasks = useStore((s) => s.tasks)
   const agents = useStore((s) => s.agents)
   const projects = useStore((s) => s.projects)
   const activeProjectId = useStore((s) => s.activeProjectId)
+
+  // Live position refs for YBotAgent collision avoidance
+  const livePositions = useMemo(() =>
+    agents.slice(0, 2).map((_, i) => {
+      const pos = PR_AGENT_STARTS[i] || PR_AGENT_STARTS[0]
+      return new THREE.Vector3(pos[0], 0, pos[2])
+    }),
+    [agents.length]
+  )
 
   const project = projects.find((p) => p.id === activeProjectId)
   const projectTasks = tasks.filter((t) => t.project_id === activeProjectId)
@@ -180,15 +195,20 @@ export function ProjectRoom() {
         </group>
       ))}
 
-      {/* Agents at their desks */}
-      {agents.slice(0, 2).map((agent, i) => (
-        <Agent
-          key={agent.id}
-          agent={agent}
-          position={[i === 0 ? -2 : 2, 0, 2]}
-          isWorking
-        />
-      ))}
+      {/* Agents at their desks — YBot animated avatars */}
+      {agents.slice(0, 2).map((agent, i) => {
+        const pos = PR_AGENT_STARTS[i] || PR_AGENT_STARTS[0]
+        const partnerIdx = i === 0 ? 1 : 0
+        return (
+          <YBotAgent
+            key={agent.id}
+            agent={agent}
+            position={pos}
+            livePosition={livePositions[i]}
+            partnerLivePosition={livePositions[partnerIdx]}
+          />
+        )
+      })}
 
       <ParticleDust />
 

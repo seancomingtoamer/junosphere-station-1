@@ -1,9 +1,9 @@
 import { useRef, useMemo } from 'react'
 import { useStore } from '../store/useStore'
 import { Stars } from '@react-three/drei'
-import { EffectComposer, Bloom, ChromaticAberration, Scanline } from '@react-three/postprocessing'
+import { EffectComposer, Bloom, ChromaticAberration, Scanline, Vignette } from '@react-three/postprocessing'
 import * as THREE from 'three'
-import { Agent } from './Agent'
+import { YBotAgent } from './YBotAgent'
 import { GalaxyMap } from './GalaxyMap'
 import { StationInterior } from './StationInterior'
 import { ParticleDust } from './ParticleDust'
@@ -32,14 +32,21 @@ export function Hub() {
 
   return (
     <>
-      {/* Lighting */}
+      {/* Depth fog — fades distant objects into darkness */}
+      <fog attach="fog" args={['#020208', 8, 28]} />
+
+      {/* Lighting — richer with more fill */}
       <ambientLight intensity={0.08} color="#1a1a3e" />
       <pointLight position={[0, 6, 0]} intensity={2} color="#00f0ff" distance={20} decay={2} />
       <pointLight position={[-5, 3, -3]} intensity={1} color="#7b2fff" distance={15} decay={2} />
       <pointLight position={[5, 3, -3]} intensity={1} color="#ff2f7b" distance={15} decay={2} />
+      {/* Extra fill lights for depth */}
+      <pointLight position={[0, 2, 8]} intensity={0.5} color="#00f0ff" distance={12} decay={2} />
+      <pointLight position={[-8, 5, -6]} intensity={0.3} color="#4020a0" distance={18} decay={2} />
+      <pointLight position={[8, 5, -6]} intensity={0.3} color="#a02060" distance={18} decay={2} />
 
-      {/* Distant stars visible through station windows */}
-      <Stars radius={200} depth={80} count={5000} factor={4} saturation={0.5} fade speed={0.3} />
+      {/* Distant stars — denser field visible through station windows */}
+      <Stars radius={200} depth={80} count={8000} factor={4} saturation={0.5} fade speed={0.3} />
 
       {/* Station structure */}
       <StationInterior />
@@ -50,12 +57,12 @@ export function Hub() {
       {/* Floating dust particles */}
       <ParticleDust />
 
-      {/* Agent avatars — alive with wandering, looking, pointing, collision avoidance */}
+      {/* Agent avatars — Y Bot models with full animation */}
       {agents.map((agent, i) => {
         const pos = AGENT_STARTS[i] || AGENT_STARTS[0]
         const partnerIdx = i === 0 ? 1 : 0
         return (
-          <Agent
+          <YBotAgent
             key={agent.id}
             agent={agent}
             position={pos}
@@ -67,9 +74,10 @@ export function Hub() {
 
       {/* Post-processing for that cyberpunk feel */}
       <EffectComposer>
-        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} intensity={1.5} />
+        <Bloom luminanceThreshold={0.2} luminanceSmoothing={0.9} intensity={1.5} mipmapBlur />
         <ChromaticAberration offset={new THREE.Vector2(0.0005, 0.0005)} />
         <Scanline density={1.2} opacity={0.05} />
+        <Vignette eskil={false} offset={0.1} darkness={0.8} />
       </EffectComposer>
     </>
   )
