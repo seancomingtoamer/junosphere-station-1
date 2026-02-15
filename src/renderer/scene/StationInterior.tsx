@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
+import { MeshReflectorMaterial } from '@react-three/drei'
 import * as THREE from 'three'
 
 export function StationInterior() {
@@ -23,7 +24,15 @@ export function StationInterior() {
       {/* Floor — dark metallic with grid lines */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <circleGeometry args={[12, 64]} />
-        <meshStandardMaterial
+        <MeshReflectorMaterial
+          blur={[300, 100]}
+          resolution={512}
+          mixBlur={1}
+          mixStrength={0.6}
+          mirror={0.5}
+          minDepthThreshold={0.9}
+          maxDepthThreshold={1}
+          depthScale={0}
           color="#8a8a95"
           metalness={0.6}
           roughness={0.45}
@@ -40,9 +49,9 @@ export function StationInterior() {
       <mesh position={[0, 4, 0]}>
         <cylinderGeometry args={[12, 12, 8, 64, 1, true]} />
         <meshStandardMaterial
-          color="#080818"
+          color="#121230"
           metalness={0.8}
-          roughness={0.4}
+          roughness={0.35}
           side={THREE.BackSide}
         />
       </mesh>
@@ -51,9 +60,9 @@ export function StationInterior() {
       <mesh position={[0, 8, 0]} rotation={[Math.PI, 0, 0]}>
         <sphereGeometry args={[12, 64, 32, 0, Math.PI * 2, 0, Math.PI / 3]} />
         <meshStandardMaterial
-          color="#050510"
+          color="#0a0a20"
           metalness={0.9}
-          roughness={0.2}
+          roughness={0.15}
           side={THREE.BackSide}
         />
       </mesh>

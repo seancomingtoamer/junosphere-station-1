@@ -27,6 +27,8 @@ const statusLabels: Record<string, string> = {
   done: 'DONE',
 }
 
+const STATUS_ORDER: Task['status'][] = ['todo', 'in_progress', 'done']
+
 type FilterMode = 'all' | 'mine' | 'EMPIRE HQ CTO' | 'SOFAR CTO'
 
 /* ── Chip selector — inline clickable chips, no dropdown needed ── */
@@ -68,6 +70,166 @@ function ChipSelect({ value, options, onChange, colorMap }: {
   )
 }
 
+/* ── Task Detail Card — full overlay when a task is selected ── */
+function TaskDetailCard({ task, onClose, onStatusChange, onAssigneeChange, onTypeChange }: {
+  task: Task
+  onClose: () => void
+  onStatusChange: (status: Task['status']) => void
+  onAssigneeChange: (agent: string) => void
+  onTypeChange: (type: string) => void
+}) {
+  const sColor = statusColors[task.status]
+  const tColor = typeColors[task.type || ''] || '#888'
+
+  return (
+    <div style={{
+      position: 'absolute',
+      inset: 0,
+      zIndex: 100,
+      background: 'rgba(0,0,8,0.95)',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      {/* Top bar */}
+      <div style={{
+        padding: '12px 16px',
+        borderBottom: `1px solid ${sColor}30`,
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+      }}>
+        <span style={{
+          fontFamily: "'Orbitron', sans-serif",
+          fontSize: 10,
+          color: sColor,
+          letterSpacing: 2,
+        }}>
+          TASK DETAIL
+        </span>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: 'rgba(255,68,68,0.15)',
+            border: '1px solid rgba(255,68,68,0.3)',
+            color: '#ff4444',
+            padding: '2px 10px',
+            fontSize: 16,
+            cursor: 'pointer',
+            fontFamily: "'Rajdhani', sans-serif",
+          }}
+        >
+          &times;
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{ flex: 1, overflow: 'auto', padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Title */}
+        <div style={{ color: '#e0eef8', fontSize: 16, fontWeight: 600, fontFamily: "'Rajdhani', sans-serif", lineHeight: 1.3 }}>
+          {task.title}
+        </div>
+
+        {/* Status selector */}
+        <div>
+          <div style={{ fontSize: 9, color: '#506070', fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, marginBottom: 6 }}>STATUS</div>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {STATUS_ORDER.map((s) => {
+              const active = task.status === s
+              const c = statusColors[s]
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => onStatusChange(s)}
+                  style={{
+                    flex: 1,
+                    padding: '6px 0',
+                    fontSize: 10,
+                    fontFamily: "'Orbitron', sans-serif",
+                    letterSpacing: 1,
+                    color: active ? c : '#405060',
+                    background: active ? `${c}20` : 'rgba(0,240,255,0.03)',
+                    border: `1px solid ${active ? `${c}60` : 'rgba(0,240,255,0.08)'}`,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  {statusLabels[s]}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Assigned To */}
+        <div>
+          <div style={{ fontSize: 9, color: '#506070', fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, marginBottom: 6 }}>ASSIGNED TO</div>
+          <ChipSelect
+            value={task.assigned_to || 'Unassigned'}
+            options={AGENTS}
+            onChange={onAssigneeChange}
+          />
+        </div>
+
+        {/* Type */}
+        <div>
+          <div style={{ fontSize: 9, color: '#506070', fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, marginBottom: 6 }}>TYPE</div>
+          <ChipSelect
+            value={task.type || 'Build'}
+            options={TASK_TYPES}
+            onChange={onTypeChange}
+            colorMap={typeColors}
+          />
+        </div>
+
+        {/* Description */}
+        <div>
+          <div style={{ fontSize: 9, color: '#506070', fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, marginBottom: 6 }}>DESCRIPTION</div>
+          <div style={{
+            color: '#90a0b0',
+            fontSize: 13,
+            fontFamily: "'Rajdhani', sans-serif",
+            lineHeight: 1.6,
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-word',
+            padding: '10px 12px',
+            background: 'rgba(0,240,255,0.03)',
+            border: '1px solid rgba(0,240,255,0.08)',
+          }}>
+            {task.description || 'No description.'}
+          </div>
+        </div>
+
+        {/* Meta */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+          padding: '10px 12px',
+          background: 'rgba(0,240,255,0.02)',
+          border: '1px solid rgba(0,240,255,0.06)',
+        }}>
+          <div style={{ fontSize: 9, color: '#506070', fontFamily: "'Orbitron', sans-serif", letterSpacing: 1, marginBottom: 2 }}>META</div>
+          <div style={{ fontSize: 11, color: '#607080' }}>
+            Created by: <span style={{ color: '#00f0ff' }}>{task.created_by || 'Unknown'}</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#607080' }}>
+            Created: <span style={{ color: '#90a0b0' }}>{new Date(task.created_at).toLocaleString()}</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#607080' }}>
+            Updated: <span style={{ color: '#90a0b0' }}>{new Date(task.updated_at).toLocaleString()}</span>
+          </div>
+          <div style={{ fontSize: 11, color: '#607080' }}>
+            ID: <span style={{ color: '#405060', fontFamily: 'monospace', fontSize: 10 }}>{task.id}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const inputStyle: React.CSSProperties = {
   width: '100%',
   background: 'rgba(0,240,255,0.05)',
@@ -78,6 +240,7 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "'Rajdhani', sans-serif",
   outline: 'none',
 }
+
 
 export function TaskPanel() {
   const tasks = useStore((s) => s.tasks)
@@ -95,6 +258,7 @@ export function TaskPanel() {
   const [newType, setNewType] = useState<string>('Build')
   const [filter, setFilter] = useState<FilterMode>('all')
   const [dirty, setDirty] = useState(false)
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
 
   const projectTasks = tasks.filter((t) => t.project_id === activeProjectId)
 
@@ -124,12 +288,6 @@ export function TaskPanel() {
     setNewAssignee('Unassigned')
     setNewType('Build')
     setIsAdding(false)
-    setDirty(true)
-  }
-
-  const cycleStatus = (task: Task) => {
-    const next = task.status === 'todo' ? 'in_progress' : task.status === 'in_progress' ? 'done' : 'todo'
-    updateTask(task.id, { status: next, updated_at: new Date().toISOString() })
     setDirty(true)
   }
 
@@ -314,72 +472,75 @@ export function TaskPanel() {
           </div>
         ) : (
           filteredTasks.map((task) => (
-            <button
-              key={task.id}
-              type="button"
-              onClick={() => cycleStatus(task)}
-              style={{
-                display: 'block',
-                width: '100%',
-                textAlign: 'left',
-                padding: '8px 14px',
-                borderLeft: `3px solid ${statusColors[task.status]}`,
-                borderTop: 'none',
-                borderRight: 'none',
-                borderBottom: 'none',
-                margin: '2px 8px',
-                background: `${statusColors[task.status]}08`,
-                cursor: 'pointer',
-                transition: 'background 0.2s',
-                outline: 'none',
-                fontFamily: "'Rajdhani', sans-serif",
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.background = `${statusColors[task.status]}15`)}
-              onMouseOut={(e) => (e.currentTarget.style.background = `${statusColors[task.status]}08`)}
-            >
-              {/* Row 1: Title + badges */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                gap: 6,
-              }}>
-                <span style={{ color: '#c0d0e0', fontSize: 14, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {task.title}
-                </span>
-                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                  {task.type && (
+              <div
+                key={task.id}
+                style={{
+                  textAlign: 'left',
+                  padding: '8px 14px',
+                  borderLeft: `3px solid ${statusColors[task.status]}`,
+                  margin: '2px 8px',
+                  background: `${statusColors[task.status]}08`,
+                  fontFamily: "'Rajdhani', sans-serif",
+                }}
+              >
+                {/* Row 1: Title + badges — click to open detail card */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedTaskId(task.id)}
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 6,
+                    width: '100%',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    cursor: 'pointer',
+                    fontFamily: "'Rajdhani', sans-serif",
+                  }}
+                >
+                  <span style={{ color: '#c0d0e0', fontSize: 14, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'left' }}>
+                    {task.title}
+                  </span>
+                  <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    {task.type && (
+                      <span style={{
+                        fontFamily: "'Orbitron', sans-serif",
+                        fontSize: 7,
+                        color: typeColors[task.type] || '#888',
+                        letterSpacing: 1,
+                        padding: '2px 5px',
+                        border: `1px solid ${(typeColors[task.type] || '#888')}40`,
+                      }}>
+                        {task.type.toUpperCase()}
+                      </span>
+                    )}
                     <span style={{
                       fontFamily: "'Orbitron', sans-serif",
                       fontSize: 7,
-                      color: typeColors[task.type] || '#888',
+                      color: statusColors[task.status],
                       letterSpacing: 1,
                       padding: '2px 5px',
-                      border: `1px solid ${(typeColors[task.type] || '#888')}40`,
+                      border: `1px solid ${statusColors[task.status]}40`,
                     }}>
-                      {task.type.toUpperCase()}
+                      {statusLabels[task.status]}
                     </span>
+                  </div>
+                </button>
+
+                {/* Row 2: Assignee */}
+                <div style={{ marginTop: 4 }}>
+                  {task.assigned_to ? (
+                    <span style={{ fontSize: 11, color: '#506070' }}>
+                      {task.assigned_to}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 11, color: '#354050' }}>Unassigned</span>
                   )}
-                  <span style={{
-                    fontFamily: "'Orbitron', sans-serif",
-                    fontSize: 7,
-                    color: statusColors[task.status],
-                    letterSpacing: 1,
-                    padding: '2px 5px',
-                    border: `1px solid ${statusColors[task.status]}40`,
-                  }}>
-                    {statusLabels[task.status]}
-                  </span>
                 </div>
               </div>
-              {/* Row 2: Assignee */}
-              {task.assigned_to && (
-                <span style={{ fontSize: 11, color: '#506070' }}>
-                  {task.assigned_to}
-                </span>
-              )}
-            </button>
-          ))
+            ))
         )}
       </div>
 
@@ -406,6 +567,33 @@ export function TaskPanel() {
       <div style={{ padding: '8px 12px', borderTop: '1px solid rgba(255,170,0,0.1)' }}>
         <SyncButton dirty={dirty} onSynced={() => setDirty(false)} />
       </div>
+
+      {/* Task Detail Overlay */}
+      {selectedTaskId && (() => {
+        const task = tasks.find((t) => t.id === selectedTaskId)
+        if (!task) return null
+        return (
+          <TaskDetailCard
+            task={task}
+            onClose={() => setSelectedTaskId(null)}
+            onStatusChange={(status) => {
+              updateTask(task.id, { status, updated_at: new Date().toISOString() })
+              setDirty(true)
+            }}
+            onAssigneeChange={(agent) => {
+              updateTask(task.id, {
+                assigned_to: agent === 'Unassigned' ? null : agent,
+                updated_at: new Date().toISOString(),
+              })
+              setDirty(true)
+            }}
+            onTypeChange={(type) => {
+              updateTask(task.id, { type, updated_at: new Date().toISOString() })
+              setDirty(true)
+            }}
+          />
+        )
+      })()}
     </div>
   )
 }

@@ -1,6 +1,6 @@
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Text, Float, Stars, Line } from '@react-three/drei'
+import { Text, Float, Stars, Line, MeshReflectorMaterial } from '@react-three/drei'
 import { EffectComposer, Bloom, ChromaticAberration, Scanline } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { useStore } from '../store/useStore'
@@ -47,7 +47,19 @@ export function AIQuickPathRoom() {
       {/* Floor */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.01, 0]} receiveShadow>
         <planeGeometry args={[18, 14]} />
-        <meshStandardMaterial color="#0a0a12" metalness={0.9} roughness={0.3} />
+        <MeshReflectorMaterial
+          blur={[400, 100]}
+          resolution={512}
+          mixBlur={1}
+          mixStrength={0.8}
+          mirror={0.6}
+          minDepthThreshold={0.9}
+          maxDepthThreshold={1}
+          depthScale={0}
+          color="#0a0a12"
+          metalness={0.9}
+          roughness={0.3}
+        />
       </mesh>
       <gridHelper args={[18, 36, '#0a2a3a', '#061525']} position={[0, 0, 0]} />
 

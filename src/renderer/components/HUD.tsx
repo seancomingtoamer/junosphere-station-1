@@ -19,7 +19,6 @@ export function HUD() {
   const projects = useStore((s) => s.projects)
   const setView = useStore((s) => s.setView)
   const setActiveProject = useStore((s) => s.setActiveProject)
-
   const onlineCount = agents.filter((a) => a.is_online).length
 
   return (
@@ -77,6 +76,23 @@ export function HUD() {
               BACK TO HUB
             </button>
           )}
+
+          <button
+            onClick={() => setView('settings')}
+            style={{
+              pointerEvents: 'auto',
+              background: 'rgba(0,240,255,0.06)',
+              border: '1px solid rgba(0,240,255,0.2)',
+              color: '#607080',
+              padding: '4px 12px',
+              fontFamily: "'Rajdhani', sans-serif",
+              fontSize: 13,
+              cursor: 'pointer',
+              letterSpacing: 2,
+            }}
+          >
+            SETTINGS
+          </button>
         </div>
 
         {/* Right — Agent info + Mission alerts */}

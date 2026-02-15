@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../hooks/useSupabase'
-import type { AppView, Project, Task, Agent, Activity } from '../../shared/types'
+import type { AppView, Project, Task, Agent, Activity, AgentExecution, ActivityType } from '../../shared/types'
+import type { RunTaskPayload } from '../../shared/ipc-channels'
 
 // Agent identity from env — Sean sets EMPIRE HQ CTO, Cam sets SOFAR CTO
 const AGENT_NAME = import.meta.env.VITE_AGENT_NAME || 'EMPIRE HQ CTO'
@@ -32,6 +33,21 @@ interface JunosphereState {
   setAgents: (agents: Agent[]) => void
   activity: Activity[]
   addActivity: (entry: Activity) => void
+
+  // Settings
+  hasApiKey: boolean
+  setHasApiKey: (v: boolean) => void
+  settingsModel: string
+  setSettingsModel: (m: string) => void
+
+  // Agent Executions
+  executions: Map<string, AgentExecution>
+  startExecution: (taskId: string, agentName: string) => string
+  updateExecution: (executionId: string, updates: Partial<AgentExecution>) => void
+  appendStream: (executionId: string, text: string) => void
+  getExecution: (taskId: string) => AgentExecution | undefined
+  executeTask: (task: Task) => Promise<void>
+  cancelExecution: (executionId: string) => Promise<void>
 }
 
 export const useStore = create<JunosphereState>((set, get) => ({
@@ -102,5 +118,106 @@ export const useStore = create<JunosphereState>((set, get) => ({
   setAgents: (agents) => set({ agents }),
   activity: [],
   addActivity: (entry) =>
-    set((state) => ({ activity: [entry, ...state.activity].slice(0, 100) }))
+    set((state) => ({ activity: [entry, ...state.activity].slice(0, 100) })),
+
+  // Settings
+  hasApiKey: false,
+  setHasApiKey: (v) => set({ hasApiKey: v }),
+  settingsModel: 'claude-sonnet-4-5-20250929',
+  setSettingsModel: (m) => set({ settingsModel: m }),
+
+  // Agent Executions
+  executions: new Map(),
+
+  startExecution: (taskId, agentName) => {
+    const executionId = crypto.randomUUID()
+    const execution: AgentExecution = {
+      id: executionId,
+      taskId,
+      agentName,
+      status: 'thinking',
+      streamedText: '',
+      startedAt: new Date().toISOString(),
+    }
+    set((state) => {
+      const next = new Map(state.executions)
+      next.set(executionId, execution)
+      return { executions: next }
+    })
+    return executionId
+  },
+
+  updateExecution: (executionId, updates) => {
+    set((state) => {
+      const next = new Map(state.executions)
+      const existing = next.get(executionId)
+      if (existing) {
+        next.set(executionId, { ...existing, ...updates })
+      }
+      return { executions: next }
+    })
+  },
+
+  appendStream: (executionId, text) => {
+    set((state) => {
+      const next = new Map(state.executions)
+      const existing = next.get(executionId)
+      if (existing) {
+        next.set(executionId, { ...existing, streamedText: existing.streamedText + text })
+      }
+      return { executions: next }
+    })
+  },
+
+  getExecution: (taskId) => {
+    const execs = get().executions
+    for (const exec of execs.values()) {
+      if (exec.taskId === taskId && (exec.status === 'thinking' || exec.status === 'working')) {
+        return exec
+      }
+    }
+    // Return most recent completed/error for this task
+    let latest: AgentExecution | undefined
+    for (const exec of execs.values()) {
+      if (exec.taskId === taskId) {
+        if (!latest || exec.startedAt > latest.startedAt) latest = exec
+      }
+    }
+    return latest
+  },
+
+  executeTask: async (task) => {
+    const state = get()
+    const agentName = task.assigned_to || state.agentName
+    const executionId = state.startExecution(task.id, agentName)
+
+    // Mark task as in_progress
+    state.updateTask(task.id, { status: 'in_progress', updated_at: new Date().toISOString() })
+
+    // Add activity
+    state.addActivity({
+      id: crypto.randomUUID(),
+      project_id: task.project_id,
+      agent_id: agentName,
+      action: 'agent_run',
+      message: `${agentName} analyzing: ${task.title}`,
+      timestamp: new Date().toISOString(),
+    })
+
+    const payload: RunTaskPayload = {
+      executionId,
+      taskId: task.id,
+      taskTitle: task.title,
+      taskDescription: task.description,
+      agentName,
+      systemPrompt: '',
+      model: state.settingsModel,
+    }
+
+    await window.junosphere.agent.run(payload)
+  },
+
+  cancelExecution: async (executionId) => {
+    await window.junosphere.agent.cancel(executionId)
+  },
 }))

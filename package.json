@@ -10,11 +10,13 @@
     "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.74.0",
     "@electron-toolkit/utils": "^3.0.0",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
     "@react-three/postprocessing": "^3.0.0",
     "@supabase/supabase-js": "^2.45.0",
+    "electron-store": "^11.0.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "three": "^0.172.0",

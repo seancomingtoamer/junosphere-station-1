@@ -47,4 +47,18 @@ export interface Activity {
   timestamp: string
 }
 
-export type AppView = 'login' | 'hub' | 'project-room'
+export type ActivityType = 'thinking' | 'working' | 'completed' | 'cancelled' | 'error'
+
+export interface AgentExecution {
+  id: string
+  taskId: string
+  agentName: string
+  status: ActivityType
+  streamedText: string
+  result?: string
+  error?: string
+  startedAt: string
+  completedAt?: string
+}
+
+export type AppView = 'login' | 'hub' | 'project-room' | 'settings'
