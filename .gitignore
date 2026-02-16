@@ -7,4 +7,7 @@ out/
 .DS_Store
 Thumbs.db
 *.png
+*.fbx
+convert_fbx.py
+desktop.ini
 nul
